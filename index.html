@@ -3,25 +3,430 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapalexo</title>
+  <title>Mapalexo - Álvaro Otero Pajares (2026)</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-    body { background-color: #FFF3E5; color: #000; font-family: sans-serif; padding: 40px; }
-    .card { max-width: 400px; margin: auto; background: #fff; padding: 20px; border: 2px solid #000; }
-    input, button { width: 100%; padding: 10px; margin-top: 10px; }
-    button { background: #CC5500; color: #fff; font-weight: bold; border: none; cursor: pointer; }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="card">
-    <h2 id="auth-title">Iniciar sesión</h2>
-    <form id="auth-form">
-      <input type="email" id="auth-email" placeholder="Correo" required>
-      <input type="password" id="auth-password" placeholder="Contraseña" required>
-      <button type="submit" id="btn-auth-submit">Entrar</button>
-      <button type="button" id="btn-toggle-auth" style="background:#444;">¿No tienes cuenta? Regístrate</button>
-    </form>
+
+  <header class="main-header">
+    <div class="brand-container">
+      <h1 class="brand-title">Mapalexo</h1>
+      <p class="brand-meta">Creado por <span class="brand-highlight">Álvaro Otero Pajares</span> | Versión <span class="brand-highlight">2026</span></p>
+    </div>
+    <div id="user-Session-Bar" class="session-bar hidden">
+      <span id="current-user-email"></span>
+      <span id="current-user-role" class="role-badge"></span>
+      <button id="btn-logout" type="button">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <main id="auth-view" class="container">
+    <section class="card auth-card">
+      <h2 id="auth-title">Iniciar sesión</h2>
+      <form id="auth-form">
+        <div class="form-group">
+          <label for="auth-email">Correo electrónico:</label>
+          <input type="email" id="auth-email" required>
+        </div>
+        <div class="form-group">
+          <label for="auth-password">Contraseña:</label>
+          <input type="password" id="auth-password" minlength="6" required>
+        </div>
+        <p id="auth-error" class="error-msg hidden"></p>
+        <div class="auth-actions">
+          <button type="submit" id="btn-auth-submit">Entrar</button>
+          <button type="button" id="btn-toggle-auth">¿No tienes cuenta? Regístrate</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <div id="app-view" class="container hidden">
+    
+    <nav class="main-nav">
+      <button type="button" class="nav-btn active" data-target="section-map">Mapa de neologismos</button>
+      <button type="button" class="nav-btn" data-target="section-search">Buscar por criterios</button>
+      <button type="button" class="nav-btn" data-target="section-upload">Subir neologismo</button>
+      <button type="button" id="nav-admin" class="nav-btn hidden" data-target="section-admin">Gestión de usuarios</button>
+    </nav>
+
+    <section id="section-map" class="app-section">
+      <div class="map-controls">
+        <label for="map-category-filter">Colorear o filtrar pines en el mapa por:</label>
+        <select id="map-category-filter">
+          <option value="all">Mostrar todos los neologismos permitidos</option>
+          <option value="Creación léxica novísima">Estadio: creación léxica novísima</option>
+          <option value="Neologismo">Estadio: neologismo</option>
+          <option value="Neologismo de forma">Forma: neologismo de forma</option>
+          <option value="Neologismo de sentido">Forma: neologismo de sentido</option>
+          <option value="Neologismo de forma y sentido">Forma: neologismo de forma y sentido</option>
+          <option value="Neologismo de préstamo">Forma: neologismo de préstamo</option>
+        </select>
+      </div>
+      <div id="main-map" class="map-box"></div>
+    </section>
+
+    <section id="section-search" class="app-section hidden">
+      <div class="card">
+        <h2>Buscar neologismos</h2>
+        <div class="search-grid">
+          <div class="form-group">
+            <label for="search-word">Palabra o definición:</label>
+            <input type="text" id="search-word" placeholder="Escribe para buscar...">
+          </div>
+          <div class="form-group">
+            <label for="search-estadio">Estadio (B.1):</label>
+            <select id="search-estadio">
+              <option value="">Todos</option>
+              <option value="Creación léxica novísima">1. Creación léxica novísima</option>
+              <option value="Neologismo">2. Neologismo</option>
+              <option value="No lo sé">4. No lo sé</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="search-forma-ling">Forma lingüística (B.5):</label>
+            <select id="search-forma-ling">
+              <option value="">Todas</option>
+              <option value="Neologismo de forma">Neologismo de forma</option>
+              <option value="Neologismo de sentido">Neologismo de sentido</option>
+              <option value="Neologismo de forma y sentido">Neologismo de forma y sentido</option>
+              <option value="Neologismo de préstamo">Neologismo de préstamo</option>
+              <option value="No lo sé">No lo sé</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="search-forma-ctx">Soporte / forma contextual (C.1):</label>
+            <select id="search-forma-ctx">
+              <option value="">Todos</option>
+              <option value="Póster">Póster</option>
+              <option value="Cartel">Cartel</option>
+              <option value="Escaparate">Escaparate</option>
+              <option value="Publicidad">Publicidad</option>
+              <option value="Grafiti">Grafiti</option>
+              <option value="Pegatina">Pegatina</option>
+              <option value="Placa institucional">Placa institucional</option>
+              <option value="Rótulo comercial">Rótulo comercial</option>
+              <option value="Mobiliario urbano">Mobiliario urbano</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="search-estatus">Estatus (C.9):</label>
+            <select id="search-estatus">
+              <option value="">Todos</option>
+              <option value="Autorizado">Autorizado</option>
+              <option value="No autorizado">No autorizado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="search-mine">Autoría:</label>
+            <select id="search-mine">
+              <option value="all">Todos los disponibles para mi rol</option>
+              <option value="mine">Solo subidos por mí</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" id="btn-run-search">Aplicar filtros</button>
+      </div>
+      <div id="search-results" class="results-grid"></div>
+    </section>
+
+    <section id="section-upload" class="app-section hidden">
+      <div class="card">
+        <div class="wizard-header">
+          <span id="wizard-step-indicator">Pantalla 1 de 13</span>
+          <div class="progress-bar-bg">
+            <div id="wizard-progress" class="progress-bar-fill"></div>
+          </div>
+        </div>
+
+        <form id="neologism-form">
+
+          <div class="wizard-step" data-step="1">
+            <h2>1. A. Información básica</h2>
+            <div class="form-group">
+              <label for="inp-palabra">1. Palabra:</label>
+              <input type="text" id="inp-palabra" required>
+            </div>
+            <div class="form-group">
+              <label for="inp-definicion">2. Definición:</label>
+              <textarea id="inp-definicion" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="inp-foto-unidad">3. Foto de la unidad:</label>
+              <input type="file" id="inp-foto-unidad" accept="image/*" required>
+            </div>
+            <div class="form-group">
+              <label for="inp-foto-contexto">4. Foto contextual:</label>
+              <input type="file" id="inp-foto-contexto" accept="image/*" required>
+            </div>
+            <div class="form-group">
+              <label>5. Lugar (busca una dirección o haz clic en el mapa para colocar el pin):</label>
+              <div class="geo-search-bar">
+                <input type="text" id="inp-direccion" placeholder="Ej. Calle Ancha, Cádiz">
+                <button type="button" id="btn-geocode">Buscar dirección</button>
+              </div>
+              <div id="picker-map" class="map-box-small"></div>
+              <div class="coords-row">
+                <input type="number" id="inp-lat" step="any" placeholder="Latitud" readonly required>
+                <input type="number" id="inp-lng" step="any" placeholder="Longitud" readonly required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="inp-fecha">6. Fecha:</label>
+              <input type="date" id="inp-fecha" required>
+            </div>
+          </div>
+
+          <div class="wizard-step hidden" data-step="2">
+            <h2>2. B. Información lingüística 1: estadio</h2>
+            <div class="form-group">
+              <label for="inp-estadio">1. Selecciona el estadio de la unidad:</label>
+              <select id="inp-estadio" required>
+                <option value="">-- Seleccionar --</option>
+                <option value="Creación léxica novísima">1. Creación léxica novísima</option>
+                <option value="Neologismo">2. Neologismo</option>
+                <option value="Palabra lexicalizada">3. Palabra lexicalizada</option>
+                <option value="No lo sé">4. No lo sé</option>
+              </select>
+            </div>
+            <p id="lexicalized-warning" class="error-msg hidden">
+              Proceso detenido: la base de datos no acepta palabras lexicalizadas, solo creaciones léxicas y neologismos.
+            </p>
+          </div>
+
+          <div class="wizard-step hidden" data-step="3">
+            <h2>3. B. Información lingüística 2: pertenencia</h2>
+            <div class="form-group">
+              <label for="inp-pertenencia">2. Pertenencia:</label>
+              <select id="inp-pertenencia" required>
+                <option value="">-- Seleccionar --</option>
+                <option value="Lengua común">Lengua común</option>
+                <option value="Lengua de especialidad">Lengua de especialidad</option>
+                <option value="No lo sé">No lo sé</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="wizard-step hidden" data-step="4">
+            <h2>4. B. Información lingüística 3: origen</h2>
+            <div class="form-group">
+              <label for="inp-origen">3. Origen:</label>
+              <select id="inp-origen" required>
+                <option value="">-- Seleccionar --</option>
+                <option value="Individual">Individual</option>
+                <option value="Institución, organismo o grupo">Institución, organismo o grupo</option>
+                <option value="No lo sé">No lo sé</option>
+              </select>
+            </div>
+            <div id="sub-origen-group" class="form-group hidden">
+              <label for="inp-origen-sub">Tipo de origen individual:</label>
+              <select id="inp-origen-sub">
+                <option value="Inconsciente">Inconsciente</option>
+                <option value="Consciente">Consciente</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="wizard-step hidden" data-step="5">
+            <h2>5. B. Información lingüística 4: finalidad</h2>
+            <div class="form-group">
+              <label for="inp-finalidad-ling">4. Finalidad:</label>
+              <select id="inp-finalidad-ling" required>
+                <option value="">-- Seleccionar --</option>
+                <option value="Denominativa">Denominativa</option>
+                <option value="Expresiva">Expresiva</option>
+                <option value="No lo sé">No lo sé</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="wizard-step hidden" data-step="6">
+            <h2>6. B. Información lingüística 5: forma</h2>
+            <div class="form-group">
+              <label for="inp-forma-ling">5. Forma:</label>
+              <select id="inp-forma-ling" required>
+                <option value="">-- Seleccionar --</option>
+                <option value="Neologismo de forma">Neologismo de forma</option>
+                <option value="Neologismo de sentido">Neologismo de sentido</option>
+                <option value="Neologismo de forma y sentido">Neologismo de forma y sentido</option>
+                <option value="Neologismo de préstamo">Neologismo de préstamo</option>
+                <option value="No lo sé">No lo sé</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="wizard-step hidden" data-step="7">
+            <h2>7. B. Información lingüística 6: procedimiento de creación</h2>
+            <div class="form-group">
+              <label for="inp-procedimiento">6. Procedimiento de creación:</label>
+              <select id="inp-procedimiento"></select>
+            </div>
+          </div>
+
+          <div class="wizard-step hidden" data-step="8">
+            <h2>8. B. Información lingüística 7: variantes</h2>
+            <div class="form-group">
+              <label for="inp-var-ort-bool">7.1. ¿Tiene variantes ortográficas?</label>
+              <select id="inp-var-ort-bool">
+                <option value="No">No</option>
+                <option value="Sí">Sí</option>
+              </select>
+              <input type="text" id="inp-var-ort-txt" class="hidden sub-input" placeholder="¿Cuáles?">
+            </div>
+            <div class="form-group">
+              <label for="inp-var-sin-bool">7.2. ¿Tiene variantes sinonímicas?</label>
+              <select id="inp-var-sin-bool">
+                <option value="No">No</option>
+                <option value="Sí">Sí</option>
+              </select>
+              <input type="text" id="inp-var-sin-txt" class="hidden sub-input" placeholder="¿Cuáles?">
+            </div>
+            <div class="form-group">
+              <label for="inp-var-ant-bool">7.3. ¿Tiene variantes antonímicas?</label>
+              <select id="inp-var-ant-bool">
+                <option value="No">No</option>
+                <option value="Sí">Sí</option>
+              </select>
+              <input type="text" id="inp-var-ant-txt" class="hidden sub-input" placeholder="¿Cuáles?">
+            </div>
+          </div>
+
+          <div class="wizard-step hidden" data-step="9">
+            <h2>9. C. Información contextual 1: forma</h2>
+            <div class="form-group">
+              <label for="inp-ctx-forma">1. Forma del soporte:</label>
+              <select id="inp-ctx-forma" required>
+                <option value="">-- Seleccionar --</option>
+                <option value="Póster">Póster</option>
+                <option value="Cartel">Cartel</option>
+                <option value="Escaparate">Escaparate</option>
+                <option value="Publicidad">Publicidad</option>
+                <option value="Grafiti">Grafiti</option>
+                <option value="Pegatina">Pegatina</option>
+                <option value="Placa institucional">Placa institucional</option>
+                <option value="Rótulo comercial">Rótulo comercial</option>
+                <option value="Mobiliario urbano">Mobiliario urbano</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="wizard-step hidden" data-step="10">
+            <h2>10. C. Información contextual 2 y 3: emisor y receptor</h2>
+            <div class="form-group">
+              <label for="inp-ctx-emisor">2. Emisor:</label>
+              <input type="text" id="inp-ctx-emisor" required>
+            </div>
+            <div class="form-group">
+              <label for="inp-ctx-receptor">3. Receptor:</label>
+              <input type="text" id="inp-ctx-receptor" required>
+            </div>
+          </div>
+
+          <div class="wizard-step hidden" data-step="11">
+            <h2>11. C. Información contextual 4 y 5: lengua(s) y alfabeto</h2>
+            <div class="form-group">
+              <label for="inp-ctx-lengua">4. Lengua(s):</label>
+              <select id="inp-ctx-lengua" required>
+                <option value="Español">Español</option>
+                <option value="Inglés">Inglés</option>
+                <option value="Francés">Francés</option>
+                <option value="Alemán">Alemán</option>
+                <option value="Italiano">Italiano</option>
+                <option value="Portugués">Portugués</option>
+                <option value="Árabe">Árabe</option>
+                <option value="Catalán">Catalán</option>
+                <option value="Gallego">Gallego</option>
+                <option value="Vasco">Vasco</option>
+                <option value="Chino">Chino</option>
+                <option value="Japonés">Japonés</option>
+                <option value="Otra">Otra (especificar)</option>
+              </select>
+              <input type="text" id="inp-ctx-lengua-otra" class="hidden sub-input" placeholder="Especifica la lengua o combinación de lenguas">
+            </div>
+            <div class="form-group">
+              <label for="inp-ctx-alfabeto">5. Alfabeto:</label>
+              <select id="inp-ctx-alfabeto" required>
+                <option value="Latino">Latino</option>
+                <option value="Cirílico">Cirílico</option>
+                <option value="Griego">Griego</option>
+                <option value="Árabe">Árabe</option>
+                <option value="Hebreo">Hebreo</option>
+                <option value="Han">Han (chino)</option>
+                <option value="Kana / Kanji">Kana / Kanji (japonés)</option>
+                <option value="Hangul">Hangul (coreano)</option>
+                <option value="Otro">Otro (especificar)</option>
+              </select>
+              <input type="text" id="inp-ctx-alfabeto-otro" class="hidden sub-input" placeholder="Especifica el alfabeto">
+            </div>
+          </div>
+
+          <div class="wizard-step hidden" data-step="12">
+            <h2>12. C. Información contextual 6 y 7: finalidad y tema</h2>
+            <div class="form-group">
+              <label for="inp-ctx-finalidad">6. Finalidad:</label>
+              <input type="text" id="inp-ctx-finalidad" required>
+            </div>
+            <div class="form-group">
+              <label for="inp-ctx-tema">7. Tema tratado:</label>
+              <input type="text" id="inp-ctx-tema" required>
+            </div>
+          </div>
+
+          <div class="wizard-step hidden" data-step="13">
+            <h2>13. C. Información contextual 8 y 9: escritura y estatus</h2>
+            <div class="form-group">
+              <label for="inp-ctx-escritura">8. Escritura:</label>
+              <select id="inp-ctx-escritura" required>
+                <option value="">-- Seleccionar --</option>
+                <option value="A mano">A mano</option>
+                <option value="Mecánica">Mecánica</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="inp-ctx-estatus">9. Estatus:</label>
+              <select id="inp-ctx-estatus" required>
+                <option value="">-- Seleccionar --</option>
+                <option value="Autorizado">Autorizado</option>
+                <option value="No autorizado">No autorizado</option>
+              </select>
+            </div>
+          </div>
+
+          <p id="wizard-error" class="error-msg hidden"></p>
+
+          <div class="wizard-controls">
+            <button type="button" id="btn-prev-step" class="hidden">Anterior</button>
+            <button type="button" id="btn-next-step">Siguiente</button>
+            <button type="submit" id="btn-submit-neologism" class="hidden">Guardar en Mapalexo</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="section-admin" class="app-section hidden">
+      <div class="card">
+        <h2>Gestión de usuarios y permisos</h2>
+        <p>Configura el rol y el alcance de visualización de cada usuario registrado.</p>
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Correo</th>
+              <th>Rol</th>
+              <th>Permiso de visualización</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="admin-users-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
   </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>

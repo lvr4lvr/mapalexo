@@ -19,14 +19,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // 1. CONFIGURACIÓN DE FIREBASE E IMGBB
-// SUSTITUYE ESTAS 8 LÍNEAS POR EL BLOQUE const firebaseConfig DE TU PESTAÑA DE FIREBASE:
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "tu-proyecto.firebaseapp.com",
-  projectId: "tu-proyecto",
-  storageBucket: "tu-proyecto.appspot.com",
-  messagingSenderId: "00000000000",
-  appId: "1:00000000000:web:00000000000"
+  apiKey: "AIzaSyCqrie1z9nQr3c-2xdJ_ojQ6i9AnpJbc9I",
+  authDomain: "mapalexo.firebaseapp.com",
+  projectId: "mapalexo",
+  storageBucket: "mapalexo.firebasestorage.app",
+  messagingSenderId: "703290685870",
+  appId: "1:703290685870:web:363778777e09069c5df03f"
 };
 
 const IMGBB_API_KEY = "5cd7df258c90ce6e35fa4aa104a43c52";
